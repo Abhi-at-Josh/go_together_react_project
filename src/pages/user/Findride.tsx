@@ -1,5 +1,9 @@
 import axios from "axios";
 import { useState, ChangeEvent } from "react";
+import { createRide, bookRide } from "../../redux/rideSlice";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../../redux/store";
+import { useNavigate } from "react-router-dom";
 
 type GeoapifyFeature = {
   properties: {
@@ -9,7 +13,6 @@ type GeoapifyFeature = {
 };
 
 const GEOAPIFY_API_KEY = '2281a2f8f9a5423a8f098f4ebced18fc';
-
 const Find = () => {
   const [pickup, setPickup] = useState<string>('');
   const [pickupSuggestions, setPickupSuggestions] = useState<GeoapifyFeature[]>([]);
@@ -17,8 +20,13 @@ const Find = () => {
   const [dropoffSuggestions, setDropoffSuggestions] = useState<GeoapifyFeature[]>([]);
   const [vehicleType, setVehicleType] = useState("");
   const [price, setPrice] = useState("");
+  const [time , setTime] = useState<string>('');
   const [userType , setUserType] = useState<boolean>(true);
-  // Function to fetch suggestions from Geoapify
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+
+  const token = localStorage.getItem("token");
+
   const fetchSuggestions = (
     input: string,
     setSuggestions: React.Dispatch<React.SetStateAction<GeoapifyFeature[]>>
@@ -39,6 +47,34 @@ const Find = () => {
         setSuggestions(response.data.features);
       })
       .catch((error) => console.error('Geoapify API error:', error));
+  };
+
+
+  const handleCreateRide = () => {
+    if (token) {
+      dispatch(
+        createRide(
+       {
+          starting_coordinates: pickup,
+          ending_coordinates: dropoff,
+          ride_time: time,
+          price,
+          vehicle_type: vehicleType,
+        })
+      );
+    } else {
+      console.error("User ID not found. Please log in.");
+    }
+  }
+
+  const handleBookRide = () => {
+    dispatch(
+      bookRide({
+        starting_coordinates: pickup,
+        ending_coordinates: dropoff,
+      })
+    );
+    navigate("/ridefoundlist")
   };
 
   return (
@@ -66,12 +102,8 @@ const Find = () => {
             </button>
           </div>
 
-          {/* Input Fields */}
-
-
-
+          {/* Input Fields */} 
           
-       {userType?   <div> 
             <div className="space-y-4">
               {/* Pickup Input */}
               <div className="relative">
@@ -140,9 +172,13 @@ const Find = () => {
                 )}
               </div>
             </div>
-              <div className="flex space-x-4 items-center mt-5 mb-5"> 
+            {userType? 
+            <div> 
+            <div className="flex space-x-4 items-center mt-5 mb-5"> 
                 <input
                   type="time"
+                  value={time}
+                  onChange={(e)=>{setTime(e.target.value)}}
                   className="bg-gray-100 px-4 py-2 rounded-md w-1/3"
                 />
                 <input
@@ -165,94 +201,22 @@ const Find = () => {
                 </select>
               </div>
             <div className="space-y-2">
-              <button className="w-full bg-black text-white font-semibold py-3 rounded-md">
+              <button 
+              onClick={handleCreateRide} 
+               className="w-full bg-black text-white font-semibold py-3 rounded-md">
                 Create Ride
               </button>
-              <p className="text-center text-gray-600">
+              {/* <p className="text-center text-gray-600">
                 Log in to see your recent activity
-              </p>
+              </p> */}
             </div>
-          </div> :  <div> 
-            <div className="space-y-4">
-              {/* Pickup Input */}
-              <div className="relative">
-                <div className="flex items-center bg-gray-100 p-3 rounded-md">
-                  <span className="text-lg">⚫</span>
-                  <input
-                    type="text"
-                    placeholder="Pickup location"
-                    value={pickup}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                      setPickup(e.target.value);
-                      fetchSuggestions(e.target.value, setPickupSuggestions);
-                    }}
-                    className="bg-transparent w-full ml-3 focus:outline-none"
-                  />
-                  <button className="text-gray-500">📍</button>
-                </div>
-                {pickupSuggestions.length > 0 && (
-                  <ul className="absolute bg-white border w-full rounded-md z-10 max-h-40 overflow-y-auto">
-                    {pickupSuggestions.map((place) => (
-                      <li
-                        key={place.properties.place_id}
-                        className="p-2 hover:bg-gray-200 cursor-pointer"
-                        onClick={() => {
-                          setPickup(place.properties.formatted);
-                          setPickupSuggestions([]);
-                        }}
-                      >
-                        {place.properties.formatted}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              {/* Dropoff Input */}
-              <div className="relative">
-                <div className="flex items-center bg-gray-100 p-3 rounded-md">
-                  <span className="text-lg">⬛</span>
-                  <input
-                    type="text"
-                    placeholder="Dropoff location"
-                    value={dropoff}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                      setDropoff(e.target.value);
-                      fetchSuggestions(e.target.value, setDropoffSuggestions);
-                    }}
-                    className="bg-transparent w-full ml-3 focus:outline-none"
-                  />
-                </div>
-                {dropoffSuggestions.length > 0 && (
-                  <ul className="absolute bg-white border w-full rounded-md z-10 max-h-40 overflow-y-auto">
-                    {dropoffSuggestions.map((place) => (
-                      <li
-                        key={place.properties.place_id}
-                        className="p-2 hover:bg-gray-200 cursor-pointer"
-                        onClick={() => {
-                          setDropoff(place.properties.formatted);
-                          setDropoffSuggestions([]);
-                        }}
-                      >
-                        {place.properties.formatted}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-              <div className="flex space-x-4 items-center mt-5 mb-5"> 
+          </div> :  
+          <div> 
+               <div className="flex space-x-4 items-center mt-5 mb-5"> 
                 <input
                   type="time"
                   className="bg-gray-100 px-4 py-2 rounded-md w-1/3"
                 />
-                {/* <input
-                  type="number"
-                  placeholder="Enter price"
-                  value={price}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setPrice(e.target.value)}
-                  className="bg-gray-100 px-4 py-2 rounded-md w-1/3"
-                /> */}
                 <select
                   value={vehicleType}
                   onChange={(e: ChangeEvent<HTMLSelectElement>) => setVehicleType(e.target.value)}
@@ -266,19 +230,16 @@ const Find = () => {
                 </select>
               </div>
             <div className="space-y-2">
-              <button className="w-full bg-black text-white font-semibold py-3 rounded-md">
+              <button 
+              onClick={handleBookRide}
+              className="w-full bg-black text-white font-semibold py-3 rounded-md">
                 Find Ride
               </button>
-              <p className="text-center text-gray-600">
+              {/* <p className="text-center text-gray-600">
                 Log in to see your recent activity
-              </p>
+              </p> */}
             </div>
-          </div> }
-      
-      
-      
-      
-      
+          </div> } 
       </div> 
 
         {/* Right Map Section */}
@@ -298,3 +259,4 @@ const Find = () => {
 };
 
 export default Find;
+

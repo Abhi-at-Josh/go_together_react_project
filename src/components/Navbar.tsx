@@ -1,4 +1,7 @@
+import { useState } from "react";
+import RideRequests from "../pages/user/RideRequests";
 const Navabar = () => {
+    const [menuOpen, setMenuOpen] = useState(false);
     return (
         <>
             <header className="bg-white shadow-2xl">
@@ -21,7 +24,7 @@ const Navabar = () => {
                             </svg>
                         </a>
                     </div>
-                    <h1 className="text-balck mr-170 text-2xl font-bold "> Go-Together</h1>
+                    <h1 className="text-balck mr-160 text-2xl font-bold "> Go-Together</h1>
                     <div className="md:flex md:items-center md:gap-12 ">
                         <nav aria-label="Global" className="hidden md:block">
                         <ul className="flex items-center gap-6 text-sm" >
@@ -36,10 +39,12 @@ const Navabar = () => {
                             <li>
                             <a className="text-black transition hover:text-yellow-500"  href="#"> Drive </a>
                             </li>
-
-                            <li>
-                            <a className="text-black transition hover:text-yellow-500"  href="#"> Home </a>
-                            </li>   
+                            <button
+                                className="relative px-4 py-2 bg-yellow-400 text-white font-semibold rounded-lg shadow-md hover:bg-red-600 transition"
+                                onClick={() => setMenuOpen(!menuOpen)}
+                            >
+                                Requests
+                            </button>
                         </ul>
                         </nav>
 
@@ -78,6 +83,8 @@ const Navabar = () => {
                     </div>
                 </div>
             </header>
+            {/* Ride Requests Dropdown */}
+          <RideRequests menuOpen={menuOpen} />
         </>
     )
 }
