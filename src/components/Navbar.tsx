@@ -1,6 +1,8 @@
 import { useState } from "react";
 import RideRequests from "../pages/user/RideRequests";
+import { useNavigate } from "react-router-dom";
 const Navabar = () => {
+    const navigate = useNavigate(); 
     const [menuOpen, setMenuOpen] = useState(false);
     return (
         <>
@@ -50,6 +52,7 @@ const Navabar = () => {
 
                         <div className="hidden md:relative md:block">
                         <button
+                            onClick={() => navigate("/profile")}
                             type="button"
                             className="overflow-hidden rounded-full border border-gray-300 shadow-inner"
                         >
@@ -88,4 +91,4 @@ const Navabar = () => {
         </>
     )
 }
-export default Navabar;
+export default Navabar; 

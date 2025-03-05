@@ -32,15 +32,14 @@ const Signup = () => {
   useEffect(() => {
     if (isSuccess) {
       dispatch(clearState());
-      navigate('');
+      navigate('/adminpanel',{replace:true});
     }
 
     if (isError) {
-      toast.error(errorMessage);
+      alert(errorMessage); 
       dispatch(clearState());
     }
   }, [isSuccess, isError, errorMessage, dispatch, navigate]);
-
   const onSubmit = (data: FormData) => {
     if (data.password !== data.cpassword) {
       toast.error("Passwords do not match");

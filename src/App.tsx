@@ -18,13 +18,15 @@ import AdminHeroSection from './components/AdminHeroSectionPage';
 import AdminView from './pages/admin/AdminView';
 import RideView from './pages/admin/RideView';
 import { Toaster } from "react-hot-toast";
+import Profile from './pages/user/Profile';
+import AdminLogin from './pages/auth/AdminLogin';
 const router = createBrowserRouter([
   {
     path:"/adminpanel",
     element:<AdminDashBoard/>,
     children: [
       {
-       path:"adminherosection",
+       path:"/adminpanel",
        element: <AdminHeroSection/>
       },
       {
@@ -36,7 +38,7 @@ const router = createBrowserRouter([
         element:<RideRequestView/>
       },
       {
-        path :"createaccount",
+        path :"createaccount",  
         element:<Signup/>
       },
       {
@@ -80,6 +82,14 @@ const router = createBrowserRouter([
    path:"ridefoundlist",
    element:<RideFoundResult/>
   },
+  {
+    path:"profile",
+    element:<Profile/>
+  },
+  {
+    path:"adminlogin",
+    element:<AdminLogin/>
+  }
 ])
 function App() {
   return (

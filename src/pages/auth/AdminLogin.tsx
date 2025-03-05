@@ -1,42 +1,40 @@
-import axios, { AxiosError } from "axios"; 
-import { useState, FormEvent, ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { useAppDispatch } from "../../redux/store";
+import { authAdmin , clearState, adminSelector} from "../../redux/adminslice/adminSlice";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { useSelector } from "react-redux";
+interface FormData {
+  email:string;
+  password:string;
+}
 const AdminLogin = () => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-
-  // Handle input change
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+ const navigate = useNavigate();
+ const dispatch = useAppDispatch();
+ const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
+ const adminState = useSelector(adminSelector) || {};
+ const {isFetching = false, isSuccess = false, isError = false, errorMessage = "" } = adminState;
+ useEffect(()=> {
+  return () => {
+    dispatch(clearState());
   };
+ },[dispatch]);
 
-  // Handle form submission
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+ useEffect(() => {
+  if(isSuccess) {
+    dispatch(clearState());
+    navigate('/adminpanel',{replace:true});
+  }
 
-    try {
-      const response = await axios.post("http://localhost:3000/admins/login", formData);
-      const { token } = response.data;
+  if(isError) {
+    alert(errorMessage);
+    dispatch(clearState());
+  }
+ },[isSuccess ,isError ,errorMessage, dispatch ,navigate]);
 
-      // Store token
-      localStorage.setItem("adminToken", token);
-
-      // Redirect to admin panel
-      navigate("/admin-panel");
-    } catch (err) {
-      const axiosError = err as AxiosError<{ message: string }>
-      setError(axiosError.response?.data?.message || "Login failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+ const onSubmit = (data: FormData) => {
+  dispatch(authAdmin({adminData: data , isSignup: false}));
+ };
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md bg-white px-6 pt-10 pb-8 shadow-xl ring-1 ring-gray-900/5 sm:rounded-xl sm:px-10">
@@ -47,18 +45,15 @@ const AdminLogin = () => {
           </div>
 
           <div className="mt-5">
-            <form onSubmit={handleSubmit}>
-              <div className="relative mt-6">
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <div className="relative mt-6"> 
                 <input
+                 {...register("email", { required: "Email is required" })}
                   type="email"
-                  name="email"
                   id="email"
                   placeholder="Email Address"
-                  value={formData.email}
-                  onChange={handleChange}
                   className="peer mt-1 w-full border-b-2 border-gray-300 px-0 py-1 placeholder:text-transparent focus:border-gray-500 focus:outline-none"
                   autoComplete="off"
-                  required
                 />
                 <label
                   htmlFor="email"
@@ -66,16 +61,15 @@ const AdminLogin = () => {
                 >
                   Email Address
                 </label>
+                {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
               </div>
 
               <div className="relative mt-6">
                 <input
+                 {...register("password", { required: "Password is required" })}
                   type="password"
-                  name="password"
                   id="password"
                   placeholder="Password"
-                  value={formData.password}
-                  onChange={handleChange}
                   className="peer mt-1 w-full border-b-2 border-gray-300 px-0 py-1 placeholder:text-transparent focus:border-gray-500 focus:outline-none"
                   required
                 />
@@ -85,19 +79,20 @@ const AdminLogin = () => {
                 >
                   Password
                 </label>
+                {errors.password && <p className="text-red-500 text-xs">{errors.password.message}</p>}
               </div>
 
-              {error && <p className="text-red-500 text-sm text-center mt-4">{error}</p>}
+              {isError && <p className="text-red-500 text-sm text-center mt-4">{errorMessage}</p>}
 
               <div className="my-6">
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={isFetching}
                   className={`w-full rounded-md bg-black px-3 py-4 text-white focus:bg-gray-600 focus:outline-none ${
-                    loading ? 'opacity-50 cursor-not-allowed' : ''
+                    isFetching ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
-                  {loading ? 'Signing in...' : 'Sign in'}
+                  {isFetching ? 'Signing in...' : 'Sign in'}
                 </button>
               </div>
 
